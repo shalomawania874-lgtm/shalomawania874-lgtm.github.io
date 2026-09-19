@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#05070b">
+<title>OWLS EYE — Trading Intelligence</title>
+<style>
+:root{--bg:#05070b;--panel:#0b1018;--line:#1c2633;--text:#f5f7fa;--muted:#8d99a8;--accent:#8cff66;--accent2:#54d6ff;--danger:#ff6678}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% -10%,#17212d 0,#05070b 42%);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}
+.wrap{max-width:980px;margin:auto;padding:24px 16px 48px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}.brand{font-weight:900;letter-spacing:.16em;font-size:18px}.live{font-size:11px;color:var(--accent);border:1px solid #294f27;border-radius:999px;padding:7px 10px;background:#0a160b}
+.hero{padding:24px 20px;border:1px solid var(--line);border-radius:24px;background:linear-gradient(145deg,#0d141e,#080c12);box-shadow:0 18px 60px #0008}.eyebrow{color:var(--accent2);font-size:11px;letter-spacing:.2em;font-weight:800}.hero h1{font-size:clamp(32px,8vw,62px);line-height:.98;margin:10px 0}.hero p{color:var(--muted);max-width:650px;line-height:1.6}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}.card{border:1px solid var(--line);border-radius:20px;background:var(--panel);padding:18px}.label{font-size:11px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px}input{width:100%;background:#070a0f;color:#fff;border:1px solid var(--line);border-radius:12px;padding:13px;font-size:15px;outline:none}input:focus{border-color:#3b596f}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}button{border:0;border-radius:13px;padding:13px 17px;font-weight:800;cursor:pointer;color:#061006;background:var(--accent)}button.secondary{background:#141c27;color:#dce5ee;border:1px solid var(--line)}button:disabled{opacity:.5;cursor:not-allowed}.result{margin-top:14px;display:none}.signal{font-size:clamp(30px,8vw,54px);font-weight:950;letter-spacing:-.03em}.buy{color:var(--accent)}.sell{color:#ff7182}.wait{color:#ffd166}.meta{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}.metric{background:#070b11;border:1px solid var(--line);border-radius:13px;padding:12px}.metric b{display:block;margin-top:5px;font-size:18px}.warning{margin-top:12px;color:#ffcf70;line-height:1.5}.drop{border:1px dashed #334151;border-radius:16px;padding:18px;text-align:center;color:var(--muted);margin-top:12px}.drop input{display:none}.footer{color:#687382;font-size:11px;line-height:1.6;margin-top:24px;text-align:center}@media(max-width:680px){.grid{grid-template-columns:1fr}.meta{grid-template-columns:1fr 1fr}.wrap{padding-top:16px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="top"><div class="brand">OWLS EYE</div><div class="live">● ONLINE INTELLIGENCE</div></div>
+<section class="hero">
+<div class="eyebrow">ADAPT • ANALYZE • DECIDE</div>
+<h1>Trading intelligence.<br>Built for evidence.</h1>
+<p>Upload a chart, optionally provide the market symbol and timeframe, and OWLS EYE will reconcile visual evidence with its verified market-data engine. When evidence is insufficient, the system can return <b>NO TRADE</b>.</p>
+<div class="grid">
+<div class="card"><div class="label">Symbol</div><input id="symbol" placeholder="e.g. BTCUSDT"></div>
+<div class="card"><div class="label">Timeframe</div><input id="tf" placeholder="e.g. 15m" value="15m"></div>
+</div>
+<div class="drop" id="drop">Choose a trading-chart image<br><label><button type="button" class="secondary" onclick="document.getElementById('file').click()">UPLOAD CHART</button></label><input id="file" type="file" accept="image/*" capture="environment"></div>
+<div class="actions"><button id="run" disabled>RUN FULL ANALYSIS</button><button class="secondary" onclick="location.href='https://owls-eye-api.vercel.app/health'">CHECK ENGINE</button></div>
+</section>
+<section class="card result" id="result">
+<div class="label">Decision</div><div id="signal" class="signal">—</div>
+<div class="meta"><div class="metric">Confidence<b id="confidence">—</b></div><div class="metric">Symbol<b id="outSymbol">—</b></div><div class="metric">Timeframe<b id="outTf">—</b></div></div>
+<div class="warning" id="warning"></div>
+</section>
+<div class="footer">Decision-support software. No guaranteed returns. No automatic trade execution. Market conditions can change rapidly.</div>
+</div>
+<script>
+const fileEl=document.getElementById('file'),run=document.getElementById('run'),drop=document.getElementById('drop'),result=document.getElementById('result');
+let file=null;
+fileEl.onchange=()=>{file=fileEl.files[0]||null;run.disabled=!file;drop.firstChild.textContent=file?file.name+' ': 'Choose a trading-chart image';};
+run.onclick=async()=>{
+ if(!file)return; run.disabled=true; run.textContent='ANALYZING…'; result.style.display='block'; document.getElementById('signal').textContent='ANALYZING';
+ try{
+  const fd=new FormData(); fd.append('image',file); const s=document.getElementById('symbol').value.trim(); const t=document.getElementById('tf').value.trim();
+  if(s)fd.append('symbol',s); if(t)fd.append('timeframe',t);
+  const r=await fetch('https://owls-eye-api.vercel.app/v1/analyze-chart',{method:'POST',body:fd}); const d=await r.json(); if(!r.ok)throw new Error(d.detail||'Analysis failed');
+  const sig=d.signal||'NO TRADE', el=document.getElementById('signal'); el.textContent=sig; el.className='signal '+(sig.includes('BUY')?'buy':sig.includes('SELL')?'sell':'wait');
+  document.getElementById('confidence').textContent=(d.confidence!=null?(Number(d.confidence)*100).toFixed(1)+'%':'—');
+  document.getElementById('outSymbol').textContent=d.symbol||s||'—'; document.getElementById('outTf').textContent=d.timeframe||t||'—';
+  document.getElementById('warning').textContent=(d.warnings||d.reasons||[]).join(' • ');
+ }catch(e){document.getElementById('signal').textContent='NO TRADE';document.getElementById('warning').textContent=e.message||'Analysis unavailable.';document.getElementById('signal').className='signal wait'}
+ finally{run.disabled=false;run.textContent='RUN FULL ANALYSIS'}
+};
+</script>
+</body></html>
