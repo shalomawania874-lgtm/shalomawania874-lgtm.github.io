@@ -56,7 +56,7 @@
 </div>
 
 <script>
-const API='https://owls-eye-api.vercel.app';
+const API='';
 const galleryInput=document.getElementById('galleryInput');
 const cameraInput=document.getElementById('cameraInput');
 const galleryBtn=document.getElementById('galleryBtn');
@@ -140,7 +140,7 @@ run.addEventListener('click',async()=>{
     if(s)fd.append('symbol',s);
     if(t)fd.append('timeframe',t);
     setStatus('Uploading chart to OWLS EYE analysis engine…');
-    const response=await fetch(API+'/v1/analyze-chart',{method:'POST',body:fd});
+    const response=await fetch('/api/v1/analyze-chart',{method:'POST',body:fd});
     const data=await response.json().catch(()=>({}));
     if(!response.ok)throw new Error(data.detail||data.error||'The analysis service rejected the chart.');
     const sig=data.signal||'NO TRADE';
@@ -163,7 +163,7 @@ run.addEventListener('click',async()=>{
 health.addEventListener('click',async()=>{
   health.disabled=true;health.textContent='CHECKING…';
   try{
-    const r=await fetch(API+'/health',{cache:'no-store'});
+    const r=await fetch('/api/health',{cache:'no-store'});
     const d=await r.json();
     alert(d.status==='ok'||d.status==='online'?'OWLS EYE engine is online.':'Engine responded, but status needs attention.');
   }catch(e){alert('Engine check failed. Please try again.')}
